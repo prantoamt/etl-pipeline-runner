@@ -16,3 +16,10 @@ jobs:
 
       - name: Publish package distributions to PyPI
         run: pdm publish
+  send-discord-notification:
+    name: Discord notification
+    env:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+    uses: Ilshidur/action-discord@master
+    with:
+      args: 'The project etl-pipeline-runner has been published to pypi (https://pypi.org/project/etl-pipeline-runner/).'
