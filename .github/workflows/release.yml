@@ -18,9 +18,14 @@ jobs:
         run: pdm publish
 
   send-discord-notification:
-    name: Discord notification
-    uses: appleboy/discord-action@master
-    with:
-      webhook_id: ${{ secrets.DISCORD_WEBHOOK_TOKEN_ID }}
-      webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
-      args: etl-pipeline-runner has been published to pypi.
+    needs: [pypi-publish]
+    name: send discord notification
+    runs-on: ubuntu-latest
+    steps:
+    - uses: appleboy/discord-action@master
+    - name: Discord notification
+      with:
+        webhook_id: ${{ secrets.DISCORD_WEBHOOK_TOKEN_ID }}
+        webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        color: "#48f442"
+        message: etl-pipeline-runner has been published to pypi.
