@@ -146,7 +146,7 @@ Parameters description:
 
 
 ## Contributing
-This is an open source project and I welcome contributions. Please submit an issue first and make a feature branch
+This is an open source project and I welcome contributions. Please create an issue first and make a feature branch
 assiciated to the issue.
 
 ## Local Development Setup
