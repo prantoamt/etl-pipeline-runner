@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "test", "lint"]
+groups = ["default", "test", "lint", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:eec69be9d2e9b6a2f23b26e849568a63322097b1f80f830d4072514d52011b78"
+content_hash = "sha256:694563baafced4969df72d36fcffa0f720e034f5ef47e543f0937942ea8bbd4d"
 
 [[package]]
 name = "attrs"
