@@ -16,3 +16,17 @@ jobs:
 
       - name: Publish package distributions to PyPI
         run: pdm publish
+
+  send-discord-notification:
+    needs: [pypi-publish]
+    name: send discord notification
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Discord notification
+      uses: appleboy/discord-action@master
+      with:
+        webhook_id: ${{ secrets.DISCORD_WEBHOOK_TOKEN_ID }}
+        webhook_token: ${{ secrets.DISCORD_WEBHOOK_TOKEN }}
+        color: "#48f442"
+        message: etl-pipeline-runner has been published to pypi.
