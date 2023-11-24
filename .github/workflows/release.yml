@@ -16,6 +16,7 @@ jobs:
 
       - name: Publish package distributions to PyPI
         run: pdm publish
+        
   send-discord-notification:
     name: Discord notification
     env:
