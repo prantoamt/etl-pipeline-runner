@@ -24,7 +24,7 @@ Data source: https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spo
 Destination: Under ``songs`` table of ``project.sqlite`` Database. Suppose the database is located or wil be created in ``/data`` directory.
 
 #### Example code:
-* Import the following services from ``etl_pipeline_runner``
+1. Import the following services from ``etl_pipeline_runner``
 
 ```
 from etl_pipeline_runner.services import (
@@ -36,7 +36,7 @@ from etl_pipeline_runner.services import (
 )
 ```
 
-1. Create an object of the SQLiteDB service.
+2. Create an object of the SQLiteDB service.
 
 ```
     DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
@@ -61,8 +61,8 @@ Parameters description:
 |             method: Callable        | Controls the SQL insertion clause used. (From pandas doc).                                                  |
 |             output_directory: str   | Path where the databse is located or wil be created.                                                        |
 
-2. Create a function that defines the transform you want to perform on the data before loading to the Database.
-    The function signature must match the following.
+3. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
+    The function signature must match the following. Here pd refers to pandas.
 
 ```
     def transform_songs(data_frame: pd.DataFrame):
@@ -71,7 +71,7 @@ Parameters description:
         return data_frame
 ```
 
-3. Create an object of the CSVFile service.
+4. Create an object of the CSVFile service.
 
 ``` 
     columns_dtype = {
@@ -87,7 +87,7 @@ Parameters description:
         sep=",",
         names=None,
         dtype=columns_dtype,
-        transform=transform_lyrics,
+        transform=transform_songs,
     )
 ```
 
@@ -101,7 +101,7 @@ Parameters description:
 |           dtype: dict               | Type of the columns in the csv file.                          |
 |           transform: Callable       | Function that defines the transformation on the data.         |
 
-4. Create an object of the DataSource service.
+5. Create an object of the DataSource service.
 
 ```
     songs_data_source = DataSource(
@@ -118,10 +118,10 @@ Parameters description:
 |-------------------------------------|-------------------------------------------------------------------------------------------------------|
 |           data_name: str            | Name of the data. (Could be anything of your choice).                                                 |
 |           url: str                  | Url of the data source.                                                                               |
-|           source_type: str          | Type of the source. Possible options: ``DataSource.KAGGLE_DATA``, ``DataSource.DIRECT_READ``.         |
+|           source_type: str          | Type of the source. Possible options: ``DataSource.KAGGLE_DATA``, ``DataSource.DIRECT_READ``. Use ``DataSource.KAGGLE_DATA`` if the source is kaggle. Use ``DataSource.DIRECT_READ`` if the ``url`` directly downloads a csv file instead of ``.zip``. Other types of sources are not supported yet. |
 |           files: Tuple(CSVFile)     | Files that exist in the data source.                                                                  |
 
-5. Create an object of ETLPipeline.
+6. Create an object of ETLPipeline.
 
 ```
     songs_pipeline = ETLPipeline(
@@ -137,7 +137,7 @@ Parameters description:
 |           sqlite_db: SQLiteDB       | An object of SQLiteBD service.    |
 
 
-6. Finally run the pipeline:
+7. Finally run the pipeline:
 
 ```
     if __name__ == "__main__":

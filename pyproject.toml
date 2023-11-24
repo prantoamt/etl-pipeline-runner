@@ -1,6 +1,6 @@
 [project]
 name = "etl-pipeline-runner"
-version = "0.2.3"
+version = "0.2.4"
 description = "A package to run ETL Pipeline"
 authors = [
     {name = "Md Badiuzzaman Pranto", email = "prantoamt@gmail.com"},
@@ -24,6 +24,19 @@ requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
 
+[tool.pdm.scripts]
+lint = "python -m black {args}"
+
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=7.4.3",
+]
+lint = [
+    "flake8>=6.1.0",
+    "black>=23.11.0",
+]
+dev = [
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
