@@ -20,7 +20,7 @@ jobs:
         uses: jsdaniell/create-json@v1.2.2
         with:
           name: "credentials.json"
-          json: ${{ secrets.MY_JSON }}
+          json: ${{ secrets.KAGGLE_CREDENTIALS }}
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
