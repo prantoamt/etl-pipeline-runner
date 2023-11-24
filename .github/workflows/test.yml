@@ -1,0 +1,34 @@
+on:
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - synchronize
+
+jobs:
+  testing:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ['3.11']
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+
+    steps:  
+      - uses: actions/checkout@v3
+      - name: setup-environment
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "kaggle.json"
+          json: ${{ secrets.KAGGLE_CREDENTIALS }}
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pdm sync -d -G testing
+      - name: Run Tests
+        run: |
+          pdm run -v pytest tests
