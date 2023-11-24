@@ -107,6 +107,19 @@ from etl_pipeline_runner.services import (
         ETLQueue(etl_pipelines=(songs_pipeline,)).run()
 ```
 
+## Setting-up credentials for KAGGLE Datasource
+If your data source is kaggle, you need api key to download the dataset.
+etl-pipeline-runner uses [opendatasets](https://github.com/JovianHQ/opendatasets) for donwloading dataset from Kaggle.  
+Following step will guide you to setup kaggle credentials.
+
+1. Go to https://kaggle.com/me/account (sign in if required).
+2. Scroll down to the "API" section and click "Create New API Token".
+3. This will download a file kaggle.json with the following contents:
+```
+    {"username":"YOUR_KAGGLE_USERNAME","key":"YOUR_KAGGLE_KEY"}
+```
+4. You can either put the credentials in your root directory as ``kaggle.json`` or enter your username and key in terminal when asked.
+
 ## Services explained
 
 1. SQLiteDB
@@ -161,19 +174,6 @@ Parameters description:
 |             Parameter                 |             Description           |
 |---------------------------------------|-----------------------------------|
 | etl_pipelines: Tuples                 |       Tupes of ETLPipelines       |
-
-## Setting-up credentials for KAGGLE Datasource
-If your data source is kaggle, you need api key to download the dataset.
-etl-pipeline-runner uses [opendatasets](https://github.com/JovianHQ/opendatasets) for donwloading dataset from Kaggle.  
-Following step will guide you to setup kaggle credentials.
-
-1. Go to https://kaggle.com/me/account (sign in if required).
-2. Scroll down to the "API" section and click "Create New API Token".
-3. This will download a file kaggle.json with the following contents:
-```
-    {"username":"YOUR_KAGGLE_USERNAME","key":"YOUR_KAGGLE_KEY"}
-```
-4. You can either put the credentials in your root directory as ``kaggle.json`` or enter your username and key in terminal when asked.
 
 ## Contributing
 This is an open source project and I welcome contributions. Please create an issue first and make a feature branch
