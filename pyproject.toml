@@ -24,6 +24,17 @@ requires-python = ">=3.11"
 readme = "README.md"
 license = {text = "MIT"}
 
+[tool.pdm.scripts]
+lint = "python -m black {args}"
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
+[tool.pdm.dev-dependencies]
+test = [
+    "pytest>=7.4.3",
+]
+lint = [
+    "flake8>=6.1.0",
+    "black>=23.11.0",
+]
