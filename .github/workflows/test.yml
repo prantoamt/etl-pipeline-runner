@@ -16,8 +16,8 @@ jobs:
 
     steps:  
       - uses: actions/checkout@v3
-      - uses: jsdaniell/create-json@v1.2.2
       - name: setup-environment
+      - uses: jsdaniell/create-json@v1.2.2
         with:
           name: "credentials.json"
           json: ${{ secrets.MY_JSON }}
