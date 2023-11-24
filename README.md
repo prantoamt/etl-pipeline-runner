@@ -118,7 +118,7 @@ Parameters description:
 |-------------------------------------|-------------------------------------------------------------------------------------------------------|
 |           data_name: str            | Name of the data. (Could be anything of your choice).                                                 |
 |           url: str                  | Url of the data source.                                                                               |
-|           source_type: str          | Type of the source. Possible options: ``DataSource.KAGGLE_DATA``, ``DataSource.DIRECT_READ``.         |
+|           source_type: str          | Type of the source. Possible options: ``DataSource.KAGGLE_DATA``, ``DataSource.DIRECT_READ``. Use ``DataSource.KAGGLE_DATA`` if the source is kaggle. Use ``DataSource.DIRECT_READ`` if the ``url`` directly downloads a csv file instead of ``.zip``. Other types of sources are not supported yet. |
 |           files: Tuple(CSVFile)     | Files that exist in the data source.                                                                  |
 
 6. Create an object of ETLPipeline.
