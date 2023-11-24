@@ -50,17 +50,6 @@ from etl_pipeline_runner.services import (
     )
 ```
 
-Parameters description:
-
-|             Parameter               |             Description                                                                                     |
-|-------------------------------------|-------------------------------------------------------------------------------------------------------------|
-|             db_name: str            | Name of the database.                                                                                       |
-|             table_name: str         | Table name where data will be stored.                                                                       |
-|             if_exists: str          | Action if the table already exists. Possible options: ``SQLiteDB.REPLACE``, ``SQLiteDB.APPEND``, ``SQLiteDB.FAIL``.|
-|             index: bool             | Write DataFrame index as a column. Uses index_label as the column name in the table. (From pandas Doc).     |
-|             method: Callable        | Controls the SQL insertion clause used. (From pandas doc).                                                  |
-|             output_directory: str   | Path where the databse is located or wil be created.                                                        |
-
 3. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
     The function signature must match the following. Here pd refers to pandas.
 
@@ -91,16 +80,6 @@ Parameters description:
     )
 ```
 
-Parameters description:
-
-|             Parameter               |             Description                                       |
-|-------------------------------------|---------------------------------------------------------------|
-|           file_name: str            | Name of the csv file. It must match with the actual filename. |
-|           sep: str                  | Separetor used in the csv file.                               |
-|           names: list               | Name of the columns if csv file does not contains it.         |
-|           dtype: dict               | Type of the columns in the csv file.                          |
-|           transform: Callable       | Function that defines the transformation on the data.         |
-
 5. Create an object of the DataSource service.
 
 ```
@@ -112,6 +91,64 @@ Parameters description:
     )
 ```
 
+6. Create an object of ETLPipeline.
+
+```
+    songs_pipeline = ETLPipeline(
+        data_source=songs_data_source,
+        sqlite_db=songs_output_db,
+    )
+```
+
+7. Finally run the pipeline:
+
+```
+    if __name__ == "__main__":
+        ETLQueue(etl_pipelines=(songs_pipeline,)).run()
+```
+
+## Setting-up credentials for KAGGLE Datasource
+If your data source is kaggle, you need api key to download the dataset.
+etl-pipeline-runner uses [opendatasets](https://github.com/JovianHQ/opendatasets) for donwloading dataset from Kaggle.  
+Following step will guide you to setup kaggle credentials.
+
+1. Go to https://kaggle.com/me/account (sign in if required).
+2. Scroll down to the "API" section and click "Create New API Token".
+3. This will download a file kaggle.json with the following contents:
+```
+    {"username":"YOUR_KAGGLE_USERNAME","key":"YOUR_KAGGLE_KEY"}
+```
+4. You can either put the credentials in your root directory as ``kaggle.json`` or enter your username and key in terminal when asked.
+
+## Services explained
+
+1. SQLiteDB
+
+Parameters description:
+
+|             Parameter               |             Description                                                                                     |
+|-------------------------------------|-------------------------------------------------------------------------------------------------------------|
+|             db_name: str            | Name of the database.                                                                                       |
+|             table_name: str         | Table name where data will be stored.                                                                       |
+|             if_exists: str          | Action if the table already exists. Possible options: ``SQLiteDB.REPLACE``, ``SQLiteDB.APPEND``, ``SQLiteDB.FAIL``.|
+|             index: bool             | Write DataFrame index as a column. Uses index_label as the column name in the table. (From pandas Doc).     |
+|             method: Callable        | Controls the SQL insertion clause used. (From pandas doc).                                                  |
+|             output_directory: str   | Path where the databse is located or wil be created.                                                        |
+
+2. CSVFile
+
+Parameters description:
+
+|             Parameter               |             Description                                       |
+|-------------------------------------|---------------------------------------------------------------|
+|           file_name: str            | Name of the csv file. It must match with the actual filename. |
+|           sep: str                  | Separetor used in the csv file.                               |
+|           names: list               | Name of the columns if csv file does not contains it.         |
+|           dtype: dict               | Type of the columns in the csv file.                          |
+|           transform: Callable       | Function that defines the transformation on the data.         |
+
+3. DataSource
+
 Parameters description:
 
 |             Parameter               |             Description                                                                               |
@@ -121,14 +158,8 @@ Parameters description:
 |           source_type: str          | Type of the source. Possible options: ``DataSource.KAGGLE_DATA``, ``DataSource.DIRECT_READ``. Use ``DataSource.KAGGLE_DATA`` if the source is kaggle. Use ``DataSource.DIRECT_READ`` if the ``url`` directly downloads a csv file instead of ``.zip``. Other types of sources are not supported yet. |
 |           files: Tuple(CSVFile)     | Files that exist in the data source.                                                                  |
 
-6. Create an object of ETLPipeline.
+4. ETLPipeline
 
-```
-    songs_pipeline = ETLPipeline(
-        data_source=songs_data_source,
-        sqlite_db=songs_output_db,
-    )
-```
 Parameters description:
 
 |             Parameter               |             Description           |
@@ -136,14 +167,13 @@ Parameters description:
 |           data_source: DataSource   | An object of DataSource service.  |
 |           sqlite_db: SQLiteDB       | An object of SQLiteBD service.    |
 
+5. ETLQueue
 
-7. Finally run the pipeline:
+Parameters description:
 
-```
-    if __name__ == "__main__":
-        ETLQueue(etl_pipelines=(songs_pipeline,)).run()
-```
-
+|             Parameter                 |             Description           |
+|---------------------------------------|-----------------------------------|
+| etl_pipelines: Tuples                 |       Tupes of ETLPipelines       |
 
 ## Contributing
 This is an open source project and I welcome contributions. Please create an issue first and make a feature branch
