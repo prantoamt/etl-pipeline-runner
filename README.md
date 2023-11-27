@@ -21,7 +21,7 @@ Install the library with pip:
 
 Data source: https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence
 
-Destination: Under ``songs`` table of ``project.sqlite`` Database. Suppose the database is located or wil be created in ``/data`` directory.
+Destination: Under ``songs`` table of ``project.sqlite`` Database. Suppose the database is located or will be created in ``/data`` directory.
 
 #### Example code:
 1. Import the following services from ``etl_pipeline_runner``
@@ -29,21 +29,21 @@ Destination: Under ``songs`` table of ``project.sqlite`` Database. Suppose the d
 ```
 from etl_pipeline_runner.services import (
     ETLPipeline,
-    DataSource,
-    CSVFile,
-    SQLiteDB,
+    DataExtractor,
+    CSVInterpreter,
+    SQLiteLoader,
     ETLQueue,
 )
 ```
 
-2. Create an object of the SQLiteDB service.
+2. Create an object of the SQLiteLoader.
 
 ```
     DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
-    output_db = SQLiteDB(
+    songs_loader = SQLiteLoader(
         db_name="project.sqlite",
-        table_name="songs",
-        if_exists=SQLiteDB.REPLACE,
+        table_name="song_lyrics",
+        if_exists=SQLiteLoader.REPLACE,
         index=False,
         method=None,
         output_directory=DATA_DIRECTORY,
@@ -60,10 +60,10 @@ from etl_pipeline_runner.services import (
         return data_frame
 ```
 
-4. Create an object of the CSVFile service.
+4. Create an object of the CSVInterpreter.
 
 ``` 
-    columns_dtype = {
+    songs_dtype = {
         "#": "Int64",
         "artist": str,
         "seq": str,
@@ -71,32 +71,32 @@ from etl_pipeline_runner.services import (
         "label": np.float64,
     }
 
-    songs_file = CSVFile(
+    songs_csv_interpreter = CSVInterpreter(
         file_name="labeled_lyrics_cleaned.csv",
         sep=",",
         names=None,
-        dtype=columns_dtype,
-        transform=transform_songs,
+        dtype=songs_dtype,
+        transform=transform_lyrics,
     )
 ```
 
-5. Create an object of the DataSource service.
+5. Create an object of the DataExtractor.
 
 ```
-    songs_data_source = DataSource(
+    songs_extractor = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
-        source_type=DataSource.KAGGLE_DATA,
-        files=(songs_file,),
+        type=DataExtractor.KAGGLE_ARCHIVE,
+        interpreters=(songs_csv_interpreter,),
     )
 ```
 
 6. Create an object of ETLPipeline.
 
 ```
-    songs_pipeline = ETLPipeline(
-        data_source=songs_data_source,
-        sqlite_db=songs_output_db,
+    lyrics_pipeline = ETLPipeline(
+        data_extractor=songs_extractor,
+        loader=songs_loader,
     )
 ```
 
@@ -122,7 +122,7 @@ Following step will guide you to setup kaggle credentials.
 
 ## Services explained
 
-1. SQLiteDB
+1. SQLiteLoader
 
 Parameters description:
 
@@ -130,7 +130,7 @@ Parameters description:
 |-------------------------------------|-------------------------------------------------------------------------------------------------------------|
 |             db_name: str            | Name of the database.                                                                                       |
 |             table_name: str         | Table name where data will be stored.                                                                       |
-|             if_exists: str          | Action if the table already exists. Possible options: ``SQLiteDB.REPLACE``, ``SQLiteDB.APPEND``, ``SQLiteDB.FAIL``.|
+|             if_exists: str          | Action if the table already exists. Possible options: ``SQLiteLoader.REPLACE``, ``SQLiteLoader.APPEND``, ``SQLiteLoader.FAIL``.|
 |             index: bool             | Write DataFrame index as a column. Uses index_label as the column name in the table. (From pandas Doc).     |
 |             method: Callable        | Controls the SQL insertion clause used. (From pandas doc).                                                  |
 |             output_directory: str   | Path where the databse is located or wil be created.                                                        |
@@ -165,7 +165,7 @@ Parameters description:
 |             Parameter               |             Description           |
 |-------------------------------------|-----------------------------------|
 |           data_source: DataSource   | An object of DataSource service.  |
-|           sqlite_db: SQLiteDB       | An object of SQLiteBD service.    |
+|           loader: SQLiteLoader       | An object of Loader service.    |
 
 5. ETLQueue
 
