@@ -10,17 +10,17 @@ from src.etl_pipeline_runner.services import (
     ETLPipeline,
     DataSource,
     CSVFile,
-    SQLiteDB,
+    SQLiteLoader,
     ETLQueue,
 )
 
 DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
 def construct_songs_pipeline() -> ETLPipeline:
-    songs_output_db = SQLiteDB(
+    songs_output_db = SQLiteLoader(
         db_name="project.sqlite",
         table_name="song_lyrics",
-        if_exists=SQLiteDB.REPLACE,
+        if_exists=SQLiteLoader.REPLACE,
         index=False,
         method=None,
         output_directory=DATA_DIRECTORY,

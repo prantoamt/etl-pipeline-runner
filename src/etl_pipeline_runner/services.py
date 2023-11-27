@@ -14,7 +14,7 @@ import opendatasets as od
 # Self imports
 
 
-class SQLiteDB:
+class SQLiteLoader:
     FAIL = "fail"
     REPLACE = "replace"
     APPEND = "append"
@@ -169,7 +169,7 @@ class DataSource:
 
 
 class ETLPipeline:
-    def __init__(self, data_source: DataSource, sqlite_db: SQLiteDB = None) -> None:
+    def __init__(self, data_source: DataSource, sqlite_db: SQLiteLoader = None) -> None:
         self.data_source = data_source
         self.sqlite_db = sqlite_db
 
