@@ -169,13 +169,13 @@ class DataExtractor:
 
 
 class ETLPipeline:
-    def __init__(self, data_source: DataExtractor, loader: SQLiteLoader = None) -> None:
-        self.data_source = data_source
+    def __init__(self, data_extractor: DataExtractor, loader: SQLiteLoader = None) -> None:
+        self.data_extractor = data_extractor
         self.loader = loader
 
     def _extract_data(self) -> str:
         output_dir = self.loader.output_directory if self.loader else "."
-        return self.data_source._download(output_dir=output_dir)
+        return self.data_extractor._download(output_dir=output_dir)
 
     def _transform_data(self, file: CSVInterpreter) -> pd.DataFrame:
         data_frame = pd.read_csv(
@@ -198,15 +198,15 @@ class ETLPipeline:
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
         tqdm_interpreters = tqdm(
-            iterable=self.data_source.interpreters, total=len(self.data_source.interpreters)
+            iterable=self.data_extractor.interpreters, total=len(self.data_extractor.interpreters)
         )
         for item in tqdm_interpreters:
             tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
             item._data_frame = self._transform_data(file=item)
             self._load_data(file=item)
-            os.remove(self.data_source.interpreters[0].file_path)
-        if self.data_source.type != DataExtractor.CSV:
+            os.remove(self.data_extractor.interpreters[0].file_path)
+        if self.data_extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
 
@@ -218,7 +218,7 @@ class ETLQueue:
         etl_tqdm = tqdm(self.etl_pipelines, total=len(self.etl_pipelines))
         for pipeline in etl_tqdm:
             etl_tqdm.set_description(
-                desc=f"Running {pipeline.data_source.data_name} pipeline"
+                desc=f"Running {pipeline.data_extractor.data_name} pipeline"
             )
             pipeline.run_pipeline()
         return True

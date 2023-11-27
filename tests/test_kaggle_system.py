@@ -17,7 +17,7 @@ from src.etl_pipeline_runner.services import (
 DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
 def construct_songs_pipeline() -> ETLPipeline:
-    songs_output_db = SQLiteLoader(
+    songs_loader = SQLiteLoader(
         db_name="project.sqlite",
         table_name="song_lyrics",
         if_exists=SQLiteLoader.REPLACE,
@@ -45,15 +45,15 @@ def construct_songs_pipeline() -> ETLPipeline:
         dtype=songs_dtype,
         transform=transform_lyrics,
     )
-    songs_data_source = DataExtractor(
+    songs_extractor = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
         type=DataExtractor.KAGGLE_ARCHIVE,
         interpreters=(songs_csv_interpreter,),
     )
     songs_pipeline = ETLPipeline(
-        data_source=songs_data_source,
-        loader=songs_output_db,
+        data_extractor=songs_extractor,
+        loader=songs_loader,
     )
     return songs_pipeline
 
