@@ -106,7 +106,7 @@ class DataExtractor:
             raise ValueError("Number of interpreters can not be ZERO in any DataExtractor!")
         if self.type == self.CSV and len(self.interpreters) > 1:
             raise ValueError(
-                "Number of interpreters can not be more than 1 if the source type is direct read!"
+                f"Number of interpreters can not be more than 1 if the source type is {self.CSV}!"
             )
 
     def _chunk_download(self, url, file_name: str, chunk_size=1048576) -> None:
@@ -136,12 +136,12 @@ class DataExtractor:
 
     def _download(self, output_dir: str) -> str:
         if self.type == DataExtractor.KAGGLE_ARCHIVE:
-            file_path = self._download_kaggle_zip_file(output_dir=output_dir)
+            file_path = self._download_kaggle_archive(output_dir=output_dir)
         if self.type == DataExtractor.CSV:
             file_path = self._download_CSV_file(output_dir=output_dir)
         return file_path
 
-    def _download_kaggle_zip_file(self, output_dir: str) -> None:
+    def _download_kaggle_archive(self, output_dir: str) -> None:
         try:
             od.download(
                 dataset_id_or_url=self.url,
