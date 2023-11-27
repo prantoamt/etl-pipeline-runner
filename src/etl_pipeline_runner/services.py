@@ -169,12 +169,12 @@ class DataSource:
 
 
 class ETLPipeline:
-    def __init__(self, data_source: DataSource, sqlite_db: SQLiteLoader = None) -> None:
+    def __init__(self, data_source: DataSource, loader: SQLiteLoader = None) -> None:
         self.data_source = data_source
-        self.sqlite_db = sqlite_db
+        self.loader = loader
 
     def _extract_data(self) -> str:
-        output_dir = self.sqlite_db.output_directory if self.sqlite_db else "."
+        output_dir = self.loader.output_directory if self.loader else "."
         return self.data_source._download(output_dir=output_dir)
 
     def _transform_data(self, file: CSVFile) -> pd.DataFrame:
@@ -192,8 +192,8 @@ class ETLPipeline:
         return data_frame
 
     def _load_data(self, file: CSVFile) -> None:
-        if self.sqlite_db != None:
-            self.sqlite_db._load_to_db(data_frame=file._data_frame)
+        if self.loader != None:
+            self.loader._load_to_db(data_frame=file._data_frame)
 
     def run_pipeline(self) -> None:
         file_path = self._extract_data()

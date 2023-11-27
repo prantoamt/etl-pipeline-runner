@@ -53,7 +53,7 @@ def construct_songs_pipeline() -> ETLPipeline:
     )
     songs_pipeline = ETLPipeline(
         data_source=songs_data_source,
-        sqlite_db=songs_output_db,
+        loader=songs_output_db,
     )
     return songs_pipeline
 
