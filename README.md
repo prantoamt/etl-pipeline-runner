@@ -94,7 +94,7 @@ from etl_pipeline_runner.services import (
 6. Create an object of ETLPipeline.
 
 ```
-    lyrics_pipeline = ETLPipeline(
+    songs_pipeline = ETLPipeline(
         data_extractor=songs_extractor,
         loader=songs_loader,
     )
@@ -135,7 +135,7 @@ Parameters description:
 |             method: Callable        | Controls the SQL insertion clause used. (From pandas doc).                                                  |
 |             output_directory: str   | Path where the databse is located or wil be created.                                                        |
 
-2. CSVFile
+2. CSVInterpreter
 
 Parameters description:
 
@@ -147,7 +147,7 @@ Parameters description:
 |           dtype: dict               | Type of the columns in the csv file.                          |
 |           transform: Callable       | Function that defines the transformation on the data.         |
 
-3. DataSource
+3. DataExtractor
 
 Parameters description:
 
@@ -155,8 +155,8 @@ Parameters description:
 |-------------------------------------|-------------------------------------------------------------------------------------------------------|
 |           data_name: str            | Name of the data. (Could be anything of your choice).                                                 |
 |           url: str                  | Url of the data source.                                                                               |
-|           source_type: str          | Type of the source. Possible options: ``DataSource.KAGGLE_DATA``, ``DataSource.DIRECT_READ``. Use ``DataSource.KAGGLE_DATA`` if the source is kaggle. Use ``DataSource.DIRECT_READ`` if the ``url`` directly downloads a csv file instead of ``.zip``. Other types of sources are not supported yet. |
-|           files: Tuple(CSVFile)     | Files that exist in the data source.                                                                  |
+|           type: str          | Type of the source. Possible options: ``DataExtractor.KAGGLE_ARCHIVE``, ``DataExtractor.CSV``.|
+|           interpreters: Tuple(CSVInterpreters)     | Interpreters to interpret the file. |
 
 4. ETLPipeline
 
@@ -164,8 +164,8 @@ Parameters description:
 
 |             Parameter               |             Description           |
 |-------------------------------------|-----------------------------------|
-|           data_source: DataSource   | An object of DataSource service.  |
-|           loader: SQLiteLoader       | An object of Loader service.    |
+|       data_extractor: DataExtractor | An object of DataSource service.  |
+|       loader: SQLiteLoader          | An object of Loader service.      |
 
 5. ETLQueue
 
