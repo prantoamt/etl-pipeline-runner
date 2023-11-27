@@ -9,7 +9,7 @@ import pandas as pd
 from src.etl_pipeline_runner.services import (
     ETLPipeline,
     DataExtractor,
-    CSVFile,
+    CSVInterpreter,
     SQLiteLoader,
     ETLQueue,
 )
@@ -25,7 +25,7 @@ def construct_songs_pipeline() -> ETLPipeline:
         method=None,
         output_directory=DATA_DIRECTORY,
     )
-    songs_file_dtype = {
+    songs_dtype = {
         "#": "Int64",
         "artist": str,
         "seq": str,
@@ -38,18 +38,18 @@ def construct_songs_pipeline() -> ETLPipeline:
         data_frame = data_frame.rename(columns={"seq": "lyrics"})
         return data_frame
 
-    songs_file = CSVFile(
+    songs_csv_interpreter = CSVInterpreter(
         file_name="labeled_lyrics_cleaned.csv",
         sep=",",
         names=None,
-        dtype=songs_file_dtype,
+        dtype=songs_dtype,
         transform=transform_lyrics,
     )
     songs_data_source = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
         type=DataExtractor.KAGGLE_ARCHIVE,
-        files=(songs_file,),
+        interpreters=(songs_csv_interpreter,),
     )
     songs_pipeline = ETLPipeline(
         data_source=songs_data_source,
