@@ -85,26 +85,26 @@ class CSVFile:
 
 
 class DataExtractor:
-    KAGGLE_DATA = "kaggle"
-    DIRECT_READ = "direct_read"
+    KAGGLE_ARCHIVE = "kaggle_archive"
+    CSV = "csv"
 
     def __init__(
         self,
         data_name: str,
         url: str,
-        source_type: str,
+        type: str,
         files: Tuple[CSVFile],
     ) -> None:
         self.data_name = data_name
         self.url = url
-        self.source_type = source_type
+        self.type = type
         self.files = files
         self._validate()
 
     def _validate(self):
         if len(self.files) == 0:
             raise ValueError("Number of files can not be ZERO in any DataExtractor!")
-        if self.source_type == self.DIRECT_READ and len(self.files) > 1:
+        if self.type == self.CSV and len(self.files) > 1:
             raise ValueError(
                 "Number of files can not be more than 1 if the source type is direct read!"
             )
@@ -135,10 +135,10 @@ class DataExtractor:
             sys.exit(1)
 
     def _download(self, output_dir: str) -> str:
-        if self.source_type == DataExtractor.KAGGLE_DATA:
+        if self.type == DataExtractor.KAGGLE_ARCHIVE:
             file_path = self._download_kaggle_zip_file(output_dir=output_dir)
-        if self.source_type == DataExtractor.DIRECT_READ:
-            file_path = self._download_direct_read_file(output_dir=output_dir)
+        if self.type == DataExtractor.CSV:
+            file_path = self._download_CSV_file(output_dir=output_dir)
         return file_path
 
     def _download_kaggle_zip_file(self, output_dir: str) -> None:
@@ -159,7 +159,7 @@ class DataExtractor:
             sys.exit(1)
         return file_path
 
-    def _download_direct_read_file(self, output_dir: str) -> str:
+    def _download_CSV_file(self, output_dir: str) -> str:
         file_path = os.path.join(output_dir, self.files[0].file_name)
         if os.path.isfile(file_path):
             print("Skipping download: the file already exists!")
@@ -206,7 +206,7 @@ class ETLPipeline:
             item._data_frame = self._transform_data(file=item)
             self._load_data(file=item)
             os.remove(self.data_source.files[0].file_path)
-        if self.data_source.source_type != DataExtractor.DIRECT_READ:
+        if self.data_source.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
 

@@ -48,7 +48,7 @@ def construct_songs_pipeline() -> ETLPipeline:
     songs_data_source = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
-        source_type=DataExtractor.KAGGLE_DATA,
+        type=DataExtractor.KAGGLE_ARCHIVE,
         files=(songs_file,),
     )
     songs_pipeline = ETLPipeline(
