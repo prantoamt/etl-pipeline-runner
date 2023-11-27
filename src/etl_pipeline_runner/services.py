@@ -84,7 +84,7 @@ class CSVFile:
         self._data_frame = None
 
 
-class DataSource:
+class DataExtractor:
     KAGGLE_DATA = "kaggle"
     DIRECT_READ = "direct_read"
 
@@ -103,7 +103,7 @@ class DataSource:
 
     def _validate(self):
         if len(self.files) == 0:
-            raise ValueError("Number of files can not be ZERO in any DataSource!")
+            raise ValueError("Number of files can not be ZERO in any DataExtractor!")
         if self.source_type == self.DIRECT_READ and len(self.files) > 1:
             raise ValueError(
                 "Number of files can not be more than 1 if the source type is direct read!"
@@ -135,9 +135,9 @@ class DataSource:
             sys.exit(1)
 
     def _download(self, output_dir: str) -> str:
-        if self.source_type == DataSource.KAGGLE_DATA:
+        if self.source_type == DataExtractor.KAGGLE_DATA:
             file_path = self._download_kaggle_zip_file(output_dir=output_dir)
-        if self.source_type == DataSource.DIRECT_READ:
+        if self.source_type == DataExtractor.DIRECT_READ:
             file_path = self._download_direct_read_file(output_dir=output_dir)
         return file_path
 
@@ -169,7 +169,7 @@ class DataSource:
 
 
 class ETLPipeline:
-    def __init__(self, data_source: DataSource, loader: SQLiteLoader = None) -> None:
+    def __init__(self, data_source: DataExtractor, loader: SQLiteLoader = None) -> None:
         self.data_source = data_source
         self.loader = loader
 
@@ -206,7 +206,7 @@ class ETLPipeline:
             item._data_frame = self._transform_data(file=item)
             self._load_data(file=item)
             os.remove(self.data_source.files[0].file_path)
-        if self.data_source.source_type != DataSource.DIRECT_READ:
+        if self.data_source.source_type != DataExtractor.DIRECT_READ:
             shutil.rmtree(file_path)
 
 

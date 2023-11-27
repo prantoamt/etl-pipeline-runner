@@ -8,7 +8,7 @@ import pandas as pd
 # Self imports6
 from src.etl_pipeline_runner.services import (
     ETLPipeline,
-    DataSource,
+    DataExtractor,
     CSVFile,
     SQLiteLoader,
     ETLQueue,
@@ -45,10 +45,10 @@ def construct_songs_pipeline() -> ETLPipeline:
         dtype=songs_file_dtype,
         transform=transform_lyrics,
     )
-    songs_data_source = DataSource(
+    songs_data_source = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
-        source_type=DataSource.KAGGLE_DATA,
+        source_type=DataExtractor.KAGGLE_DATA,
         files=(songs_file,),
     )
     songs_pipeline = ETLPipeline(
