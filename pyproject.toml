@@ -1,6 +1,6 @@
 [project]
 name = "etl-pipeline-runner"
-version = "1.0.0"
+version = "1.0.1"
 description = "A package to run ETL Pipeline"
 authors = [
     {name = "Md Badiuzzaman Pranto", email = "prantoamt@gmail.com"},
