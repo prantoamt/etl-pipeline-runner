@@ -103,7 +103,9 @@ class DataExtractor:
 
     def _validate(self):
         if len(self.interpreters) == 0:
-            raise ValueError("Number of interpreters can not be ZERO in any DataExtractor!")
+            raise ValueError(
+                "Number of interpreters can not be ZERO in any DataExtractor!"
+            )
         if self.type == self.CSV and len(self.interpreters) > 1:
             raise ValueError(
                 f"Number of interpreters can not be more than 1 if the source type is {self.CSV}!"
@@ -169,7 +171,9 @@ class DataExtractor:
 
 
 class ETLPipeline:
-    def __init__(self, data_extractor: DataExtractor, loader: SQLiteLoader = None) -> None:
+    def __init__(
+        self, data_extractor: DataExtractor, loader: SQLiteLoader = None
+    ) -> None:
         self.data_extractor = data_extractor
         self.loader = loader
 
@@ -198,7 +202,8 @@ class ETLPipeline:
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
         tqdm_interpreters = tqdm(
-            iterable=self.data_extractor.interpreters, total=len(self.data_extractor.interpreters)
+            iterable=self.data_extractor.interpreters,
+            total=len(self.data_extractor.interpreters),
         )
         for item in tqdm_interpreters:
             tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")

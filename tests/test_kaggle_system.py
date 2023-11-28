@@ -16,6 +16,7 @@ from src.etl_pipeline_runner.services import (
 
 DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
+
 def construct_songs_pipeline() -> ETLPipeline:
     songs_loader = SQLiteLoader(
         db_name="project.sqlite",
