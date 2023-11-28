@@ -1,10 +1,14 @@
 ## etl-pipeline-runner
 
+
 Extract Transform Load (ETL) pipeline runner is a simple, yet effective python 
 package to run ETL-Pipelines for Data sceince projects. The sole purpose of this
 package is to:
 
 ```Extract data from a source --> Transform the data according to the necessity --> Load data to a Database```
+
+![](images/ETL-Pipeline.jpg?raw=true)
+
 
 ## Installation
 
