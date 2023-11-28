@@ -14,7 +14,7 @@ import opendatasets as od
 # Self imports
 
 
-class SQLiteDB:
+class SQLiteLoader:
     FAIL = "fail"
     REPLACE = "replace"
     APPEND = "append"
@@ -54,7 +54,7 @@ class SQLiteDB:
             sys.exit(1)
 
 
-class CSVFile:
+class CSVInterpreter:
     ZIP_COMPRESSION = "zip"
     GZIP_COMPRESSION = "gzip"
     BZIP2_COMPRESSION = "bz2"
@@ -84,29 +84,31 @@ class CSVFile:
         self._data_frame = None
 
 
-class DataSource:
-    KAGGLE_DATA = "kaggle"
-    DIRECT_READ = "direct_read"
+class DataExtractor:
+    KAGGLE_ARCHIVE = "kaggle_archive"
+    CSV = "csv"
 
     def __init__(
         self,
         data_name: str,
         url: str,
-        source_type: str,
-        files: Tuple[CSVFile],
+        type: str,
+        interpreters: Tuple[CSVInterpreter],
     ) -> None:
         self.data_name = data_name
         self.url = url
-        self.source_type = source_type
-        self.files = files
+        self.type = type
+        self.interpreters = interpreters
         self._validate()
 
     def _validate(self):
-        if len(self.files) == 0:
-            raise ValueError("Number of files can not be ZERO in any DataSource!")
-        if self.source_type == self.DIRECT_READ and len(self.files) > 1:
+        if len(self.interpreters) == 0:
             raise ValueError(
-                "Number of files can not be more than 1 if the source type is direct read!"
+                "Number of interpreters can not be ZERO in any DataExtractor!"
+            )
+        if self.type == self.CSV and len(self.interpreters) > 1:
+            raise ValueError(
+                f"Number of interpreters can not be more than 1 if the source type is {self.CSV}!"
             )
 
     def _chunk_download(self, url, file_name: str, chunk_size=1048576) -> None:
@@ -135,13 +137,13 @@ class DataSource:
             sys.exit(1)
 
     def _download(self, output_dir: str) -> str:
-        if self.source_type == DataSource.KAGGLE_DATA:
-            file_path = self._download_kaggle_zip_file(output_dir=output_dir)
-        if self.source_type == DataSource.DIRECT_READ:
-            file_path = self._download_direct_read_file(output_dir=output_dir)
+        if self.type == DataExtractor.KAGGLE_ARCHIVE:
+            file_path = self._download_kaggle_archive(output_dir=output_dir)
+        if self.type == DataExtractor.CSV:
+            file_path = self._download_CSV_file(output_dir=output_dir)
         return file_path
 
-    def _download_kaggle_zip_file(self, output_dir: str) -> None:
+    def _download_kaggle_archive(self, output_dir: str) -> None:
         try:
             od.download(
                 dataset_id_or_url=self.url,
@@ -159,8 +161,8 @@ class DataSource:
             sys.exit(1)
         return file_path
 
-    def _download_direct_read_file(self, output_dir: str) -> str:
-        file_path = os.path.join(output_dir, self.files[0].file_name)
+    def _download_CSV_file(self, output_dir: str) -> str:
+        file_path = os.path.join(output_dir, self.interpreters[0].file_name)
         if os.path.isfile(file_path):
             print("Skipping download: the file already exists!")
             return output_dir
@@ -169,15 +171,17 @@ class DataSource:
 
 
 class ETLPipeline:
-    def __init__(self, data_source: DataSource, sqlite_db: SQLiteDB = None) -> None:
-        self.data_source = data_source
-        self.sqlite_db = sqlite_db
+    def __init__(
+        self, data_extractor: DataExtractor, loader: SQLiteLoader = None
+    ) -> None:
+        self.data_extractor = data_extractor
+        self.loader = loader
 
     def _extract_data(self) -> str:
-        output_dir = self.sqlite_db.output_directory if self.sqlite_db else "."
-        return self.data_source._download(output_dir=output_dir)
+        output_dir = self.loader.output_directory if self.loader else "."
+        return self.data_extractor._download(output_dir=output_dir)
 
-    def _transform_data(self, file: CSVFile) -> pd.DataFrame:
+    def _transform_data(self, file: CSVInterpreter) -> pd.DataFrame:
         data_frame = pd.read_csv(
             filepath_or_buffer=file.file_path,
             sep=file.sep,
@@ -191,22 +195,23 @@ class ETLPipeline:
             data_frame = file._transform(data_frame=data_frame)
         return data_frame
 
-    def _load_data(self, file: CSVFile) -> None:
-        if self.sqlite_db != None:
-            self.sqlite_db._load_to_db(data_frame=file._data_frame)
+    def _load_data(self, file: CSVInterpreter) -> None:
+        if self.loader != None:
+            self.loader._load_to_db(data_frame=file._data_frame)
 
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
-        tqdm_files = tqdm(
-            iterable=self.data_source.files, total=len(self.data_source.files)
+        tqdm_interpreters = tqdm(
+            iterable=self.data_extractor.interpreters,
+            total=len(self.data_extractor.interpreters),
         )
-        for item in tqdm_files:
-            tqdm_files.set_description(desc=f"Processing {item.file_name}")
+        for item in tqdm_interpreters:
+            tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
             item._data_frame = self._transform_data(file=item)
             self._load_data(file=item)
-            os.remove(self.data_source.files[0].file_path)
-        if self.data_source.source_type != DataSource.DIRECT_READ:
+            os.remove(self.data_extractor.interpreters[0].file_path)
+        if self.data_extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
 
@@ -218,7 +223,7 @@ class ETLQueue:
         etl_tqdm = tqdm(self.etl_pipelines, total=len(self.etl_pipelines))
         for pipeline in etl_tqdm:
             etl_tqdm.set_description(
-                desc=f"Running {pipeline.data_source.data_name} pipeline"
+                desc=f"Running {pipeline.data_extractor.data_name} pipeline"
             )
             pipeline.run_pipeline()
         return True

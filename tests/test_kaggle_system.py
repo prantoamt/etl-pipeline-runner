@@ -8,24 +8,25 @@ import pandas as pd
 # Self imports6
 from src.etl_pipeline_runner.services import (
     ETLPipeline,
-    DataSource,
-    CSVFile,
-    SQLiteDB,
+    DataExtractor,
+    CSVInterpreter,
+    SQLiteLoader,
     ETLQueue,
 )
 
 DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
+
 def construct_songs_pipeline() -> ETLPipeline:
-    songs_output_db = SQLiteDB(
+    songs_loader = SQLiteLoader(
         db_name="project.sqlite",
         table_name="song_lyrics",
-        if_exists=SQLiteDB.REPLACE,
+        if_exists=SQLiteLoader.REPLACE,
         index=False,
         method=None,
         output_directory=DATA_DIRECTORY,
     )
-    songs_file_dtype = {
+    songs_dtype = {
         "#": "Int64",
         "artist": str,
         "seq": str,
@@ -38,22 +39,22 @@ def construct_songs_pipeline() -> ETLPipeline:
         data_frame = data_frame.rename(columns={"seq": "lyrics"})
         return data_frame
 
-    songs_file = CSVFile(
+    songs_csv_interpreter = CSVInterpreter(
         file_name="labeled_lyrics_cleaned.csv",
         sep=",",
         names=None,
-        dtype=songs_file_dtype,
+        dtype=songs_dtype,
         transform=transform_lyrics,
     )
-    songs_data_source = DataSource(
+    songs_extractor = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
-        source_type=DataSource.KAGGLE_DATA,
-        files=(songs_file,),
+        type=DataExtractor.KAGGLE_ARCHIVE,
+        interpreters=(songs_csv_interpreter,),
     )
     songs_pipeline = ETLPipeline(
-        data_source=songs_data_source,
-        sqlite_db=songs_output_db,
+        data_extractor=songs_extractor,
+        loader=songs_loader,
     )
     return songs_pipeline
 
