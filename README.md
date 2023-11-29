@@ -143,13 +143,13 @@ Parameters description:
 
 Parameters description:
 
-|             Parameter               |             Description                                       |
-|-------------------------------------|---------------------------------------------------------------|
-|           file_name: str            | Name of the csv file. It must match with the actual filename. |
-|           sep: str                  | Separetor used in the csv file.                               |
-|           names: list               | Name of the columns if csv file does not contains it.         |
-|           dtype: dict               | Type of the columns in the csv file.                          |
-|           transform: Callable       | Function that defines the transformation on the data.         |
+|             Parameter               |             Description                                           |
+|-------------------------------------|-------------------------------------------------------------------|
+|           file_name: str            | Name of the csv file. **It must match with the actual filename.** |
+|           sep: str                  | Separetor used in the csv file.                                   |
+|           names: list               | Name of the columns if csv file does not contains it.             |
+|           dtype: dict               | Type of the columns in the csv file.                              |
+|           transform: Callable       | Function that defines the transformation on the data.             |
 
 3. DataExtractor
 
@@ -168,7 +168,7 @@ Parameters description:
 
 |             Parameter               |             Description           |
 |-------------------------------------|-----------------------------------|
-|       data_extractor: DataExtractor | An object of DataSource service.  |
+|       data_extractor: DataExtractor | An object of DataExtractor service.  |
 |       loader: SQLiteLoader          | An object of Loader service.      |
 
 5. ETLQueue
