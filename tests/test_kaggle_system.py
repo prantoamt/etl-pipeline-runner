@@ -16,9 +16,13 @@ from src.etl_pipeline_runner.services import (
 
 DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
-
 def construct_songs_pipeline() -> ETLPipeline:
-
+    
+    def transform_songs(data_frame: pd.DataFrame):
+        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
+        data_frame = data_frame.rename(columns={"seq": "lyrics"})
+        return data_frame
+    
     songs_loader = SQLiteLoader(
         db_name="project.sqlite",
         table_name="song_lyrics",
@@ -28,11 +32,6 @@ def construct_songs_pipeline() -> ETLPipeline:
         output_directory=DATA_DIRECTORY,
     )
     
-    def transform_lyrics(data_frame: pd.DataFrame):
-        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
-        data_frame = data_frame.rename(columns={"seq": "lyrics"})
-        return data_frame
-    
     songs_dtype = {
         "#": "Int64",
         "artist": str,
@@ -41,22 +40,21 @@ def construct_songs_pipeline() -> ETLPipeline:
         "label": np.float64,
     }
 
-    songs_csv_handler = CSVHandler(
+    songs_csv_interpreter = CSVHandler(
         file_name="labeled_lyrics_cleaned.csv",
         sep=",",
         names=None,
         dtype=songs_dtype,
+        transformer=transform_songs,
         loader=songs_loader,
-        transformer=transform_lyrics,
     )
 
     songs_extractor = DataExtractor(
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
         type=DataExtractor.KAGGLE_ARCHIVE,
-        file_handlers=(songs_csv_handler,),
+        interpreters=(songs_csv_interpreter,),
     )
-
 
     songs_pipeline = ETLPipeline(
         extractor=songs_extractor,

@@ -16,14 +16,12 @@ from src.etl_pipeline_runner.services import (
 
 DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
-
 def construct_songs_pipeline() -> ETLPipeline:
-    
     def transform_weather(data_frame: pd.DataFrame):
         data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
         data_frame = data_frame.rename(columns={"Tsun": "tsun"})
         return data_frame
-    
+
     weather_loader = SQLiteLoader(
         db_name="project.sqlite",
         table_name="weather",
@@ -32,7 +30,7 @@ def construct_songs_pipeline() -> ETLPipeline:
         method=None,
         output_directory=DATA_DIRECTORY,
     )
-    
+
     weather_csv_handler = CSVHandler(
         file_name="VYNT0.csv.gz",
         sep=",",
@@ -60,8 +58,6 @@ def construct_songs_pipeline() -> ETLPipeline:
         type=DataExtractor.CSV,
         file_handlers=(weather_csv_handler,),
     )
-
-
 
     weather_pipeline = ETLPipeline(
         extractor=weather_extractor,
