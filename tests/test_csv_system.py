@@ -33,7 +33,7 @@ def construct_songs_pipeline() -> ETLPipeline:
         output_directory=DATA_DIRECTORY,
     )
     
-    weather_csv_interpreter = CSVHandler(
+    weather_csv_handler = CSVHandler(
         file_name="VYNT0.csv.gz",
         sep=",",
         names=[
@@ -58,7 +58,7 @@ def construct_songs_pipeline() -> ETLPipeline:
         data_name="Weather",
         url="https://bulk.meteostat.net/v2/daily/VYNT0.csv.gz",
         type=DataExtractor.CSV,
-        interpreters=(weather_csv_interpreter,),
+        file_handlers=(weather_csv_handler,),
     )
 
 

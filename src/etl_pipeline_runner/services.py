@@ -105,22 +105,22 @@ class DataExtractor:
         data_name: str,
         url: str,
         type: str,
-        interpreters: Tuple[CSVHandler],
+        file_handlers: Tuple[CSVHandler],
     ) -> None:
         self.data_name = data_name
         self.url = url
         self.type = type
-        self.interpreters = interpreters
+        self.file_handlers = file_handlers
         self._validate()
 
     def _validate(self):
-        if len(self.interpreters) == 0:
+        if len(self.file_handlers) == 0:
             raise ValueError(
-                "Number of interpreters can not be ZERO in any DataExtractor!"
+                "Number of file_handlers can not be ZERO in any type of DataExtractor!"
             )
-        if self.type == self.CSV and len(self.interpreters) > 1:
+        if self.type == self.CSV and len(self.file_handlers) > 1:
             raise ValueError(
-                f"Number of interpreters can not be more than 1 if the source type is {self.CSV}!"
+                f"Number of file_handlers can not be more than 1 if the source type is {self.CSV}!"
             )
 
     def _chunk_download(self, url, file_name: str, chunk_size=1048576) -> None:
@@ -174,7 +174,7 @@ class DataExtractor:
         return file_path
 
     def _download_CSV_file(self, output_dir: str) -> str:
-        file_path = os.path.join(output_dir, self.interpreters[0].file_name)
+        file_path = os.path.join(output_dir, self.file_handlers[0].file_name)
         if os.path.isfile(file_path):
             print("Skipping download: the file already exists!")
             return output_dir
@@ -195,12 +195,12 @@ class ETLPipeline:
 
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
-        tqdm_interpreters = tqdm(
-            iterable=self.extractor.interpreters,
-            total=len(self.extractor.interpreters),
+        tqdm_file_handlers = tqdm(
+            iterable=self.extractor.file_handlers,
+            total=len(self.extractor.file_handlers),
         )
-        for item in tqdm_interpreters:
-            tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
+        for item in tqdm_file_handlers:
+            tqdm_file_handlers.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
             transformed_data = (
                 item.transformer(data_frame=item._get_data_frame())
@@ -208,7 +208,7 @@ class ETLPipeline:
                 else item._get_data_frame()
             )
             item.loader._load_to_db(data_frame=transformed_data)
-            os.remove(self.extractor.interpreters[0].file_path)
+            os.remove(self.extractor.file_handlers[0].file_path)
         if self.extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
