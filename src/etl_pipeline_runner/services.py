@@ -68,7 +68,6 @@ class CSVInterpreter:
         sep: str,
         dtype: dict = None,
         names: Union[List[str], None] = None,
-        transform: Callable[[pd.DataFrame], pd.DataFrame] = None,
         file_path=None,
         compression: str = None,
         encoding="utf-8",
@@ -77,11 +76,22 @@ class CSVInterpreter:
         self.sep = sep
         self.names = names
         self.dtype = dtype
-        self._transform = transform
         self.file_path = file_path
         self.compression = compression
         self.encoding = encoding
         self._data_frame = None
+
+    def _get_data_frame(self) -> pd.DataFrame:
+        data_frame = pd.read_csv(
+            filepath_or_buffer=self.file_path,
+            sep=self.sep,
+            header=0,
+            names=self.names,
+            compression=self.compression,
+            dtype=self.dtype,
+            encoding=self.encoding,
+        )
+        return data_frame
 
 
 class DataExtractor:
@@ -172,46 +182,40 @@ class DataExtractor:
 
 class ETLPipeline:
     def __init__(
-        self, data_extractor: DataExtractor, loader: SQLiteLoader = None
+        self,
+        extractor: DataExtractor,
+        transformer: Callable[[pd.DataFrame], pd.DataFrame] = None,
+        loader: SQLiteLoader = None,
     ) -> None:
-        self.data_extractor = data_extractor
+        self.extractor = extractor
+        self.transformer = transformer
         self.loader = loader
 
     def _extract_data(self) -> str:
         output_dir = self.loader.output_directory if self.loader else "."
-        return self.data_extractor._download(output_dir=output_dir)
+        return self.extractor._download(output_dir=output_dir)
 
-    def _transform_data(self, file: CSVInterpreter) -> pd.DataFrame:
-        data_frame = pd.read_csv(
-            filepath_or_buffer=file.file_path,
-            sep=file.sep,
-            header=0,
-            names=file.names,
-            compression=file.compression,
-            dtype=file.dtype,
-            encoding=file.encoding,
-        )
-        if file._transform:
-            data_frame = file._transform(data_frame=data_frame)
-        return data_frame
-
-    def _load_data(self, file: CSVInterpreter) -> None:
+    def _load_data(self, data_frame: pd.DataFrame) -> None:
         if self.loader != None:
-            self.loader._load_to_db(data_frame=file._data_frame)
+            self.loader._load_to_db(data_frame=data_frame)
 
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
         tqdm_interpreters = tqdm(
-            iterable=self.data_extractor.interpreters,
-            total=len(self.data_extractor.interpreters),
+            iterable=self.extractor.interpreters,
+            total=len(self.extractor.interpreters),
         )
         for item in tqdm_interpreters:
             tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
-            item._data_frame = self._transform_data(file=item)
-            self._load_data(file=item)
-            os.remove(self.data_extractor.interpreters[0].file_path)
-        if self.data_extractor.type != DataExtractor.CSV:
+            transformed_data = (
+                self.transformer(data_frame=item._get_data_frame())
+                if self.transformer
+                else item._get_data_frame()
+            )
+            self._load_data(data_frame=transformed_data)
+            os.remove(self.extractor.interpreters[0].file_path)
+        if self.extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
 
@@ -223,7 +227,7 @@ class ETLQueue:
         etl_tqdm = tqdm(self.etl_pipelines, total=len(self.etl_pipelines))
         for pipeline in etl_tqdm:
             etl_tqdm.set_description(
-                desc=f"Running {pipeline.data_extractor.data_name} pipeline"
+                desc=f"Running {pipeline.extractor.data_name} pipeline"
             )
             pipeline.run_pipeline()
         return True
