@@ -82,6 +82,7 @@ class CSVHandler:
         self.file_path = None
         self.compression = compression
         self.encoding = encoding
+        self._data_frame = None
 
     def _get_data_frame(self) -> pd.DataFrame:
         data_frame = pd.read_csv(
@@ -202,12 +203,12 @@ class ETLPipeline:
         for item in tqdm_file_handlers:
             tqdm_file_handlers.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
-            transformed_data = (
+            item._data_frame = (
                 item.transformer(data_frame=item._get_data_frame())
                 if item.transformer
                 else item._get_data_frame()
             )
-            item.loader._load_to_db(data_frame=transformed_data)
+            item.loader._load_to_db(data_frame=item._data_frame)
             os.remove(self.extractor.file_handlers[0].file_path)
         if self.extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
@@ -217,11 +218,10 @@ class ETLQueue:
     def __init__(self, etl_pipelines: Tuple[ETLPipeline]) -> None:
         self.etl_pipelines = etl_pipelines
 
-    def run(self) -> bool:
+    def run(self) -> None:
         etl_tqdm = tqdm(self.etl_pipelines, total=len(self.etl_pipelines))
         for pipeline in etl_tqdm:
             etl_tqdm.set_description(
                 desc=f"Running {pipeline.extractor.data_name} pipeline"
             )
             pipeline.run_pipeline()
-        return True
