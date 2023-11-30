@@ -75,7 +75,7 @@ from etl_pipeline_runner.services import (
         "label": np.float64,
     }
 
-    songs_csv_interpreter = CSVHandler(
+    songs_csv_handler = CSVHandler(
         file_name="labeled_lyrics_cleaned.csv",
         sep=",",
         names=None,
@@ -92,7 +92,7 @@ from etl_pipeline_runner.services import (
         data_name="Song lyrics",
         url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
         type=DataExtractor.KAGGLE_ARCHIVE,
-        interpreters=(songs_csv_interpreter,),
+        file_handlers=(songs_csv_handler,),
     )
 ```
 
