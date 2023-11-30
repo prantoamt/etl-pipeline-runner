@@ -69,17 +69,7 @@ from etl_pipeline_runner.services import (
     )
 ```
 
-4. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
-    The function signature must match the following. Here pd refers to pandas.
-
-```
-    def transform_songs(data_frame: pd.DataFrame):
-        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
-        data_frame = data_frame.rename(columns={"seq": "lyrics"})
-        return data_frame
-```
-
-5. Create an object of the SQLiteLoader.
+4. Create an object of the SQLiteLoader.
 
 ```
     DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
@@ -93,12 +83,22 @@ from etl_pipeline_runner.services import (
     )
 ```
 
+5. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
+    The function signature must match the following. Here pd refers to pandas.
+
+```
+    def transform_songs(data_frame: pd.DataFrame):
+        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
+        data_frame = data_frame.rename(columns={"seq": "lyrics"})
+        return data_frame
+```
+
 6. Create an object of ETLPipeline.
 
 ```
     songs_pipeline = ETLPipeline(
-        data_extractor=songs_extractor,
-        transformer=transform_lyrics,
+        extractor=songs_extractor,
+        transformer=transform_songs,
         loader=songs_loader,
     )
 ```
