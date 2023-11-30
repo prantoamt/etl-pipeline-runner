@@ -1,6 +1,6 @@
 [project]
 name = "etl-pipeline-runner"
-version = "2.0.1"
+version = "2.0.2"
 description = "A package to run ETL Pipeline"
 authors = [
     {name = "Md Badiuzzaman Pranto", email = "prantoamt@gmail.com"},
@@ -20,7 +20,7 @@ dependencies = [
     "opendatasets>=0.1.22",
     "tqdm>=4.66.1",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
 
