@@ -9,7 +9,7 @@ import pandas as pd
 from src.etl_pipeline_runner.services import (
     ETLPipeline,
     DataExtractor,
-    CSVInterpreter,
+    CSVHandler,
     SQLiteLoader,
     ETLQueue,
 )
@@ -18,7 +18,22 @@ DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
 
 
 def construct_songs_pipeline() -> ETLPipeline:
-    weather_csv_interpreter = CSVInterpreter(
+    
+    def transform_weather(data_frame: pd.DataFrame):
+        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
+        data_frame = data_frame.rename(columns={"Tsun": "tsun"})
+        return data_frame
+    
+    weather_loader = SQLiteLoader(
+        db_name="project.sqlite",
+        table_name="weather",
+        if_exists=SQLiteLoader.REPLACE,
+        index=False,
+        method=None,
+        output_directory=DATA_DIRECTORY,
+    )
+    
+    weather_csv_interpreter = CSVHandler(
         file_name="VYNT0.csv.gz",
         sep=",",
         names=[
@@ -35,6 +50,8 @@ def construct_songs_pipeline() -> ETLPipeline:
             "Tsun",
         ],
         compression="gzip",
+        transformer=transform_weather,
+        loader=weather_loader,
     )
 
     weather_extractor = DataExtractor(
@@ -44,24 +61,10 @@ def construct_songs_pipeline() -> ETLPipeline:
         interpreters=(weather_csv_interpreter,),
     )
 
-    def transform_weather(data_frame: pd.DataFrame):
-        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
-        data_frame = data_frame.rename(columns={"Tsun": "tsun"})
-        return data_frame
 
-    weather_loader = SQLiteLoader(
-        db_name="project.sqlite",
-        table_name="weather",
-        if_exists=SQLiteLoader.REPLACE,
-        index=False,
-        method=None,
-        output_directory=DATA_DIRECTORY,
-    )
 
     weather_pipeline = ETLPipeline(
         extractor=weather_extractor,
-        transformer=transform_weather,
-        loader=weather_loader,
     )
     return weather_pipeline
 

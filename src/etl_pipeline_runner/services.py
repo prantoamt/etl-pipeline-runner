@@ -54,7 +54,7 @@ class SQLiteLoader:
             sys.exit(1)
 
 
-class CSVInterpreter:
+class CSVHandler:
     ZIP_COMPRESSION = "zip"
     GZIP_COMPRESSION = "gzip"
     BZIP2_COMPRESSION = "bz2"
@@ -66,20 +66,22 @@ class CSVInterpreter:
         self,
         file_name: str,
         sep: str,
+        loader: SQLiteLoader,
+        transformer: Callable[[pd.DataFrame], pd.DataFrame] = None,
         dtype: dict = None,
         names: Union[List[str], None] = None,
-        file_path=None,
         compression: str = None,
         encoding="utf-8",
     ) -> None:
         self.file_name = file_name
         self.sep = sep
+        self.loader = loader
+        self.transformer = transformer
         self.names = names
         self.dtype = dtype
-        self.file_path = file_path
+        self.file_path = None
         self.compression = compression
         self.encoding = encoding
-        self._data_frame = None
 
     def _get_data_frame(self) -> pd.DataFrame:
         data_frame = pd.read_csv(
@@ -103,7 +105,7 @@ class DataExtractor:
         data_name: str,
         url: str,
         type: str,
-        interpreters: Tuple[CSVInterpreter],
+        interpreters: Tuple[CSVHandler],
     ) -> None:
         self.data_name = data_name
         self.url = url
@@ -184,20 +186,12 @@ class ETLPipeline:
     def __init__(
         self,
         extractor: DataExtractor,
-        transformer: Callable[[pd.DataFrame], pd.DataFrame] = None,
-        loader: SQLiteLoader = None,
     ) -> None:
         self.extractor = extractor
-        self.transformer = transformer
-        self.loader = loader
 
     def _extract_data(self) -> str:
-        output_dir = self.loader.output_directory if self.loader else "."
+        output_dir = os.path.join(os.getcwd(), "data")
         return self.extractor._download(output_dir=output_dir)
-
-    def _load_data(self, data_frame: pd.DataFrame) -> None:
-        if self.loader != None:
-            self.loader._load_to_db(data_frame=data_frame)
 
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
@@ -209,11 +203,11 @@ class ETLPipeline:
             tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
             transformed_data = (
-                self.transformer(data_frame=item._get_data_frame())
-                if self.transformer
+                item.transformer(data_frame=item._get_data_frame())
+                if item.transformer
                 else item._get_data_frame()
             )
-            self._load_data(data_frame=transformed_data)
+            item.loader._load_to_db(data_frame=transformed_data)
             os.remove(self.extractor.interpreters[0].file_path)
         if self.extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
