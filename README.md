@@ -39,32 +39,7 @@ from etl_pipeline_runner.services import (
     ETLQueue,
 )
 ```
-
-2. Create an object of the SQLiteLoader.
-
-```
-    DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
-    songs_loader = SQLiteLoader(
-        db_name="project.sqlite",
-        table_name="song_lyrics",
-        if_exists=SQLiteLoader.REPLACE,
-        index=False,
-        method=None,
-        output_directory=DATA_DIRECTORY,
-    )
-```
-
-3. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
-    The function signature must match the following. Here pd refers to pandas.
-
-```
-    def transform_songs(data_frame: pd.DataFrame):
-        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
-        data_frame = data_frame.rename(columns={"seq": "lyrics"})
-        return data_frame
-```
-
-4. Create an object of the CSVInterpreter.
+2. Create an object of the CSVInterpreter.
 
 ``` 
     songs_dtype = {
@@ -80,11 +55,10 @@ from etl_pipeline_runner.services import (
         sep=",",
         names=None,
         dtype=songs_dtype,
-        transform=transform_lyrics,
     )
 ```
 
-5. Create an object of the DataExtractor.
+3. Create an object of the DataExtractor.
 
 ```
     songs_extractor = DataExtractor(
@@ -95,11 +69,36 @@ from etl_pipeline_runner.services import (
     )
 ```
 
+4. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
+    The function signature must match the following. Here pd refers to pandas.
+
+```
+    def transform_songs(data_frame: pd.DataFrame):
+        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
+        data_frame = data_frame.rename(columns={"seq": "lyrics"})
+        return data_frame
+```
+
+5. Create an object of the SQLiteLoader.
+
+```
+    DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
+    songs_loader = SQLiteLoader(
+        db_name="project.sqlite",
+        table_name="song_lyrics",
+        if_exists=SQLiteLoader.REPLACE,
+        index=False,
+        method=None,
+        output_directory=DATA_DIRECTORY,
+    )
+```
+
 6. Create an object of ETLPipeline.
 
 ```
     songs_pipeline = ETLPipeline(
         data_extractor=songs_extractor,
+        transformer=transform_lyrics,
         loader=songs_loader,
     )
 ```
@@ -149,7 +148,6 @@ Parameters description:
 |           sep: str                  | Separetor used in the csv file.                                   |
 |           names: list               | Name of the columns if csv file does not contains it.             |
 |           dtype: dict               | Type of the columns in the csv file.                              |
-|           transform: Callable       | Function that defines the transformation on the data.             |
 
 3. DataExtractor
 
@@ -168,7 +166,8 @@ Parameters description:
 
 |             Parameter               |             Description           |
 |-------------------------------------|-----------------------------------|
-|       data_extractor: DataExtractor | An object of DataExtractor service.  |
+|       extractor: DataExtractor      | An object of DataExtractor service.  |
+|       transformer: Callable         | Function that defines the transformation on the data. |
 |       loader: SQLiteLoader          | An object of Loader service.      |
 
 5. ETLQueue
