@@ -183,17 +183,17 @@ class DataExtractor:
 class ETLPipeline:
     def __init__(
         self,
-        data_extractor: DataExtractor,
+        extractor: DataExtractor,
         transformer: Callable[[pd.DataFrame], pd.DataFrame] = None,
         loader: SQLiteLoader = None,
     ) -> None:
-        self.data_extractor = data_extractor
+        self.extractor = extractor
         self.transformer = transformer
         self.loader = loader
 
     def _extract_data(self) -> str:
         output_dir = self.loader.output_directory if self.loader else "."
-        return self.data_extractor._download(output_dir=output_dir)
+        return self.extractor._download(output_dir=output_dir)
 
     def _load_data(self, data_frame: pd.DataFrame) -> None:
         if self.loader != None:
@@ -202,8 +202,8 @@ class ETLPipeline:
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
         tqdm_interpreters = tqdm(
-            iterable=self.data_extractor.interpreters,
-            total=len(self.data_extractor.interpreters),
+            iterable=self.extractor.interpreters,
+            total=len(self.extractor.interpreters),
         )
         for item in tqdm_interpreters:
             tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
@@ -214,8 +214,8 @@ class ETLPipeline:
                 else item._get_data_frame()
             )
             self._load_data(data_frame=transformed_data)
-            os.remove(self.data_extractor.interpreters[0].file_path)
-        if self.data_extractor.type != DataExtractor.CSV:
+            os.remove(self.extractor.interpreters[0].file_path)
+        if self.extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
 
@@ -227,7 +227,7 @@ class ETLQueue:
         etl_tqdm = tqdm(self.etl_pipelines, total=len(self.etl_pipelines))
         for pipeline in etl_tqdm:
             etl_tqdm.set_description(
-                desc=f"Running {pipeline.data_extractor.data_name} pipeline"
+                desc=f"Running {pipeline.extractor.data_name} pipeline"
             )
             pipeline.run_pipeline()
         return True

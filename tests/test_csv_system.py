@@ -59,7 +59,7 @@ def construct_songs_pipeline() -> ETLPipeline:
     )
 
     weather_pipeline = ETLPipeline(
-        data_extractor=weather_extractor,
+        extractor=weather_extractor,
         transformer=transform_weather,
         loader=weather_loader,
     )

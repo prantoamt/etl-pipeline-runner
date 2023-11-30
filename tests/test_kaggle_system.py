@@ -55,7 +55,7 @@ def construct_songs_pipeline() -> ETLPipeline:
         return data_frame
 
     songs_pipeline = ETLPipeline(
-        data_extractor=songs_extractor,
+        extractor=songs_extractor,
         transformer=transform_lyrics,
         loader=songs_loader,
     )
