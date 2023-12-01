@@ -163,7 +163,7 @@ Parameters description:
 |           data_name: str                      | Name of the data. (Could be anything of your choice).                                                 |
 |           url: str                            | Url of the data source.                                                                               |
 |           type: str                           | Type of the source. Possible options: ``DataExtractor.KAGGLE_ARCHIVE``, ``DataExtractor.CSV``.        |
-|           file_handlers: Tuple(CSVHandlers)   | Handlers to handle the files.                                                                         |
+|           file_handlers: Tuple(CSVHandlers)   | Handler objects to handle the extracted files from the url.                                           |
 
 4. ETLPipeline
 
