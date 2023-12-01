@@ -34,42 +34,23 @@ Destination: Under ``songs`` table of ``project.sqlite`` Database. Suppose the d
 from etl_pipeline_runner.services import (
     ETLPipeline,
     DataExtractor,
-    CSVInterpreter,
+    CSVHandler,
     SQLiteLoader,
     ETLQueue,
 )
 ```
-2. Create an object of the CSVInterpreter.
 
-``` 
-    songs_dtype = {
-        "#": "Int64",
-        "artist": str,
-        "seq": str,
-        "song": str,
-        "label": np.float64,
-    }
-
-    songs_csv_interpreter = CSVInterpreter(
-        file_name="labeled_lyrics_cleaned.csv",
-        sep=",",
-        names=None,
-        dtype=songs_dtype,
-    )
-```
-
-3. Create an object of the DataExtractor.
+2. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
+    The function signature must match the following. Here pd refers to pandas.
 
 ```
-    songs_extractor = DataExtractor(
-        data_name="Song lyrics",
-        url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
-        type=DataExtractor.KAGGLE_ARCHIVE,
-        interpreters=(songs_csv_interpreter,),
-    )
+    def transform_songs(data_frame: pd.DataFrame):
+        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
+        data_frame = data_frame.rename(columns={"seq": "lyrics"})
+        return data_frame
 ```
 
-4. Create an object of the SQLiteLoader.
+3. Create an object of the SQLiteLoader.
 
 ```
     DATA_DIRECTORY = os.path.join(os.getcwd(), "data")
@@ -83,14 +64,36 @@ from etl_pipeline_runner.services import (
     )
 ```
 
-5. Create a function that defines the transformation you want to perform on the dataset before loading to the Database.
-    The function signature must match the following. Here pd refers to pandas.
+4. Create an object of the CSVHandler.
+
+``` 
+    songs_dtype = {
+        "#": "Int64",
+        "artist": str,
+        "seq": str,
+        "song": str,
+        "label": np.float64,
+    }
+
+    songs_csv_handler = CSVHandler(
+        file_name="labeled_lyrics_cleaned.csv",
+        sep=",",
+        names=None,
+        dtype=songs_dtype,
+        transformer=transform_songs,
+        loader=songs_loader,
+    )
+```
+
+5. Create an object of the DataExtractor.
 
 ```
-    def transform_songs(data_frame: pd.DataFrame):
-        data_frame = data_frame.drop(columns=data_frame.columns[0], axis=1)
-        data_frame = data_frame.rename(columns={"seq": "lyrics"})
-        return data_frame
+    songs_extractor = DataExtractor(
+        data_name="Song lyrics",
+        url="https://www.kaggle.com/datasets/edenbd/150k-lyrics-labeled-with-spotify-valence",
+        type=DataExtractor.KAGGLE_ARCHIVE,
+        file_handlers=(songs_csv_handler,),
+    )
 ```
 
 6. Create an object of ETLPipeline.
@@ -98,8 +101,6 @@ from etl_pipeline_runner.services import (
 ```
     songs_pipeline = ETLPipeline(
         extractor=songs_extractor,
-        transformer=transform_songs,
-        loader=songs_loader,
     )
 ```
 
@@ -138,7 +139,7 @@ Parameters description:
 |             method: Callable        | Controls the SQL insertion clause used. (From pandas doc).                                                  |
 |             output_directory: str   | Path where the databse is located or wil be created.                                                        |
 
-2. CSVInterpreter
+2. CSVHandler
 
 Parameters description:
 
@@ -148,27 +149,29 @@ Parameters description:
 |           sep: str                  | Separetor used in the csv file.                                   |
 |           names: list               | Name of the columns if csv file does not contains it.             |
 |           dtype: dict               | Type of the columns in the csv file.                              |
+|           compression: str          | Options: ``CSVHandler.ZIP_COMPRESSION``, ``CSVHandler.GZIP_COMPRESSION``, ``CSVHandler.BZIP2_COMPRESSION``, ``CSVHandler.ZSTD_COMPRESSION``, ``CSVHandler.XZ_COMPRESSION``, ``CSVHandler.TAR_COMPRESSION``|
+|           encoding: str             | Encoding of the file. Default: ``utf-8``.                         |
+|           loader: SQLiteLoader      | Object of SQLiteLoader                                            |
+|           transformer: Callable     | Function that defines the transformation on the data.             |
 
 3. DataExtractor
 
 Parameters description:
 
-|             Parameter               |             Description                                                                               |
-|-------------------------------------|-------------------------------------------------------------------------------------------------------|
-|           data_name: str            | Name of the data. (Could be anything of your choice).                                                 |
-|           url: str                  | Url of the data source.                                                                               |
-|           type: str          | Type of the source. Possible options: ``DataExtractor.KAGGLE_ARCHIVE``, ``DataExtractor.CSV``.|
-|           interpreters: Tuple(CSVInterpreters)     | Interpreters to interpret the file. |
+|             Parameter                         |             Description                                                                               |
+|-----------------------------------------------|-------------------------------------------------------------------------------------------------------|
+|           data_name: str                      | Name of the data. (Could be anything of your choice).                                                 |
+|           url: str                            | Url of the data source.                                                                               |
+|           type: str                           | Type of the source. Possible options: ``DataExtractor.KAGGLE_ARCHIVE``, ``DataExtractor.CSV``.        |
+|           file_handlers: Tuple(CSVHandlers)   | Handler objects to handle the extracted files from the url.                                           |
 
 4. ETLPipeline
 
 Parameters description:
 
-|             Parameter               |             Description           |
-|-------------------------------------|-----------------------------------|
-|       extractor: DataExtractor      | An object of DataExtractor service.  |
-|       transformer: Callable         | Function that defines the transformation on the data. |
-|       loader: SQLiteLoader          | An object of Loader service.      |
+|             Parameter                 |             Description            |
+|---------------------------------------|------------------------------------|
+|       extractor: DataExtractor        | An object of DataExtractor service.|
 
 5. ETLQueue
 

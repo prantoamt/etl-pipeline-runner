@@ -54,7 +54,7 @@ class SQLiteLoader:
             sys.exit(1)
 
 
-class CSVInterpreter:
+class CSVHandler:
     ZIP_COMPRESSION = "zip"
     GZIP_COMPRESSION = "gzip"
     BZIP2_COMPRESSION = "bz2"
@@ -66,17 +66,20 @@ class CSVInterpreter:
         self,
         file_name: str,
         sep: str,
+        loader: SQLiteLoader,
+        transformer: Callable[[pd.DataFrame], pd.DataFrame] = None,
         dtype: dict = None,
         names: Union[List[str], None] = None,
-        file_path=None,
         compression: str = None,
         encoding="utf-8",
     ) -> None:
         self.file_name = file_name
         self.sep = sep
+        self.loader = loader
+        self.transformer = transformer
         self.names = names
         self.dtype = dtype
-        self.file_path = file_path
+        self.file_path = None
         self.compression = compression
         self.encoding = encoding
         self._data_frame = None
@@ -103,22 +106,22 @@ class DataExtractor:
         data_name: str,
         url: str,
         type: str,
-        interpreters: Tuple[CSVInterpreter],
+        file_handlers: Tuple[CSVHandler],
     ) -> None:
         self.data_name = data_name
         self.url = url
         self.type = type
-        self.interpreters = interpreters
+        self.file_handlers = file_handlers
         self._validate()
 
     def _validate(self):
-        if len(self.interpreters) == 0:
+        if len(self.file_handlers) == 0:
             raise ValueError(
-                "Number of interpreters can not be ZERO in any DataExtractor!"
+                "Number of file_handlers can not be ZERO in any type of DataExtractor!"
             )
-        if self.type == self.CSV and len(self.interpreters) > 1:
+        if self.type == self.CSV and len(self.file_handlers) > 1:
             raise ValueError(
-                f"Number of interpreters can not be more than 1 if the source type is {self.CSV}!"
+                f"Number of file_handlers can not be more than 1 if the source type is {self.CSV}!"
             )
 
     def _chunk_download(self, url, file_name: str, chunk_size=1048576) -> None:
@@ -172,7 +175,7 @@ class DataExtractor:
         return file_path
 
     def _download_CSV_file(self, output_dir: str) -> str:
-        file_path = os.path.join(output_dir, self.interpreters[0].file_name)
+        file_path = os.path.join(output_dir, self.file_handlers[0].file_name)
         if os.path.isfile(file_path):
             print("Skipping download: the file already exists!")
             return output_dir
@@ -184,37 +187,29 @@ class ETLPipeline:
     def __init__(
         self,
         extractor: DataExtractor,
-        transformer: Callable[[pd.DataFrame], pd.DataFrame] = None,
-        loader: SQLiteLoader = None,
     ) -> None:
         self.extractor = extractor
-        self.transformer = transformer
-        self.loader = loader
 
     def _extract_data(self) -> str:
-        output_dir = self.loader.output_directory if self.loader else "."
+        output_dir = os.path.join(os.getcwd(), "data")
         return self.extractor._download(output_dir=output_dir)
-
-    def _load_data(self, data_frame: pd.DataFrame) -> None:
-        if self.loader != None:
-            self.loader._load_to_db(data_frame=data_frame)
 
     def run_pipeline(self) -> None:
         file_path = self._extract_data()
-        tqdm_interpreters = tqdm(
-            iterable=self.extractor.interpreters,
-            total=len(self.extractor.interpreters),
+        tqdm_file_handlers = tqdm(
+            iterable=self.extractor.file_handlers,
+            total=len(self.extractor.file_handlers),
         )
-        for item in tqdm_interpreters:
-            tqdm_interpreters.set_description(desc=f"Processing {item.file_name}")
+        for item in tqdm_file_handlers:
+            tqdm_file_handlers.set_description(desc=f"Processing {item.file_name}")
             item.file_path = os.path.join(file_path, item.file_name)
-            transformed_data = (
-                self.transformer(data_frame=item._get_data_frame())
-                if self.transformer
+            item._data_frame = (
+                item.transformer(data_frame=item._get_data_frame())
+                if item.transformer
                 else item._get_data_frame()
             )
-            self._load_data(data_frame=transformed_data)
-            os.remove(self.extractor.interpreters[0].file_path)
+            item.loader._load_to_db(data_frame=item._data_frame)
+            os.remove(self.extractor.file_handlers[0].file_path)
         if self.extractor.type != DataExtractor.CSV:
             shutil.rmtree(file_path)
 
@@ -223,11 +218,10 @@ class ETLQueue:
     def __init__(self, etl_pipelines: Tuple[ETLPipeline]) -> None:
         self.etl_pipelines = etl_pipelines
 
-    def run(self) -> bool:
+    def run(self) -> None:
         etl_tqdm = tqdm(self.etl_pipelines, total=len(self.etl_pipelines))
         for pipeline in etl_tqdm:
             etl_tqdm.set_description(
                 desc=f"Running {pipeline.extractor.data_name} pipeline"
             )
             pipeline.run_pipeline()
-        return True
