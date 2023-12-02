@@ -68,10 +68,11 @@ class SQLiteLoader:
                 dtype=dtypes,
                 method=self.method,
             )
-            connection.close()
         except sqlite3.Error as e:
             logging.error(msg=f"Error while creating SQLite DB: {e}")
             sys.exit(1)
+        finally:
+            connection.close()
 
 
 class CSVHandler:
