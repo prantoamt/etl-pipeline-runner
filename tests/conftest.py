@@ -170,8 +170,8 @@ def mock_data_frame():
         {
             "float": [1.0],
             "int": [1],
-            "datetime": str([pd.Timestamp("20180310")]),
+            "datetime": [pd.to_datetime("20180310")],
             "string": ["foo"],
         },
     )
-    yield data_frame
+    yield data_frame.astype(str)
