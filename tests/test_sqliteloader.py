@@ -25,6 +25,7 @@ class TestSqliteLoader:
         result = pd.read_sql_query(
             f"SELECT * FROM {sqlite_loader.table_name}", connection
         )
+        connection.close()
         assert_frame_equal(result, mock_data_frame)
         os.remove(db_path)
 
@@ -41,6 +42,7 @@ class TestSqliteLoader:
         result = pd.read_sql_query(
             f"SELECT * FROM {sqlite_loader.table_name}", connection
         )
+        connection.close()
         assert_frame_equal(result, appended_data_frame)
         os.remove(db_path)
 
