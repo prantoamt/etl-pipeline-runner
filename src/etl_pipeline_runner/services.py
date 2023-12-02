@@ -11,6 +11,7 @@ import pandas as pd
 import sqlite3
 import sqlalchemy
 import opendatasets as od
+from sqlalchemy.types import NVARCHAR, DateTime, Float, INT
 
 # Self imports
 
@@ -42,27 +43,26 @@ class SQLiteLoader:
         dtypedict = {}
         for i,j in zip(data_frame.columns, data_frame.dtypes):
             if "object" in str(j):
-                dtypedict.update({i: sqlalchemy.types.NVARCHAR(length=255)})
+                dtypedict.update({i: str(NVARCHAR(length=255))})
                                     
             if "datetime" in str(j):
-                dtypedict.update({i: sqlalchemy.types.DateTime()})
+                dtypedict.update({i: str(DateTime())})
 
             if "float" in str(j):
-                dtypedict.update({i: sqlalchemy.types.Float(precision=3, asdecimal=True)})
+                dtypedict.update({i: str(Float(precision=3, asdecimal=True))})
 
             if "int" in str(j):
-                dtypedict.update({i: sqlalchemy.types.INT()})
+                dtypedict.update({i: str(INT())})
         return dtypedict
 
     def _load_to_db(self, data_frame: pd.DataFrame):
         db_path = os.path.join(self.output_directory, self.db_name)
         try:
             dtypes = self._sql_col(data_frame)
-            engine = sqlalchemy.create_engine(f"sqlite:////{db_path}")
-            connection = engine.raw_connection()
+            connection = sqlite3.connect(db_path)
             data_frame.to_sql(
                 self.table_name,
-                con=engine,
+                con=connection,
                 if_exists=self.if_exists,
                 index=self.index,
                 dtype=dtypes,
