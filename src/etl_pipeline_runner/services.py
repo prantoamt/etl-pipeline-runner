@@ -4,11 +4,12 @@ import logging
 from typing import Callable, List, Iterable, Tuple, Any, Union
 import shutil
 import os, sys
-import sqlite3
-from tqdm import tqdm
 
 # Third-party imports
+from tqdm import tqdm
 import pandas as pd
+import sqlite3
+import sqlalchemy
 import opendatasets as od
 
 # Self imports
@@ -36,16 +37,35 @@ class SQLiteLoader:
         self.index = index
         self.output_directory = output_directory
         self.method = method
+    
+    def _sql_col(self, data_frame: pd.DataFrame):
+        dtypedict = {}
+        for i,j in zip(data_frame.columns, data_frame.dtypes):
+            if "object" in str(j):
+                dtypedict.update({i: sqlalchemy.types.NVARCHAR(length=255)})
+                                    
+            if "datetime" in str(j):
+                dtypedict.update({i: sqlalchemy.types.DateTime()})
+
+            if "float" in str(j):
+                dtypedict.update({i: sqlalchemy.types.Float(precision=3, asdecimal=True)})
+
+            if "int" in str(j):
+                dtypedict.update({i: sqlalchemy.types.INT()})
+        return dtypedict
 
     def _load_to_db(self, data_frame: pd.DataFrame):
         db_path = os.path.join(self.output_directory, self.db_name)
         try:
-            connection = sqlite3.connect(db_path)
+            dtypes = self._sql_col(data_frame)
+            engine = sqlalchemy.create_engine(f"sqlite:////{db_path}")
+            connection = engine.raw_connection()
             data_frame.to_sql(
                 self.table_name,
-                connection,
+                con=engine,
                 if_exists=self.if_exists,
                 index=self.index,
+                dtype=dtypes,
                 method=self.method,
             )
             connection.close()
