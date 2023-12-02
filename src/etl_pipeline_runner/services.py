@@ -9,7 +9,6 @@ import os, sys
 from tqdm import tqdm
 import pandas as pd
 import sqlite3
-import sqlalchemy
 import opendatasets as od
 from sqlalchemy.types import NVARCHAR, DateTime, Float, INT
 
@@ -38,13 +37,13 @@ class SQLiteLoader:
         self.index = index
         self.output_directory = output_directory
         self.method = method
-    
+
     def _sql_col(self, data_frame: pd.DataFrame):
         dtypedict = {}
-        for i,j in zip(data_frame.columns, data_frame.dtypes):
+        for i, j in zip(data_frame.columns, data_frame.dtypes):
             if "object" in str(j):
                 dtypedict.update({i: str(NVARCHAR(length=255))})
-                                    
+
             if "datetime" in str(j):
                 dtypedict.update({i: str(DateTime())})
 
