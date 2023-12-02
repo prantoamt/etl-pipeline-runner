@@ -81,7 +81,7 @@ def csv_pipeline():
         return data_frame
 
     weather_loader = SQLiteLoader(
-        db_name="project.sqlite",
+        db_name="test.sqlite",
         table_name="weather",
         if_exists=SQLiteLoader.REPLACE,
         index=False,
@@ -137,7 +137,7 @@ def csv_pipeline():
 @pytest.fixture
 def sqlite_loader(**kwargs):
     def _sqlite_loader(**kwargs):
-        db_name = "test_sqlite_loader.sqlite"
+        db_name = "test.sqlite"
         table_name = "loader_table"
         if_exists = kwargs.pop("if_exists")
         sqlite_loader = SQLiteLoader(
@@ -170,8 +170,8 @@ def mock_data_frame():
         {
             "float": [1.0],
             "int": [1],
-            "datetime": [pd.Timestamp("20180310")],
+            "datetime": str([pd.Timestamp("20180310")]),
             "string": ["foo"],
         },
     )
-    yield data_frame.astype(str)
+    yield data_frame
