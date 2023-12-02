@@ -168,10 +168,11 @@ def csv_handler():
 def mock_data_frame():
     data_frame = pd.DataFrame(
         {
-            "float": [1.0],
+            "float": [1.5],
             "int": [1],
-            "datetime": [pd.to_datetime("20180310")],
+            "datetime": [pd.to_datetime("20180310", utc=False)],
             "string": ["foo"],
         },
     )
-    yield data_frame.astype(str)
+    data_frame = data_frame.astype({'float': np.float64, 'int': np.int64, 'datetime': str, 'string': str})
+    yield data_frame
