@@ -152,6 +152,17 @@ def sqlite_loader(**kwargs):
 
     return _sqlite_loader
 
+@pytest.fixture
+def csv_handler():
+    csv_handler = CSVHandler(
+        file_name="demo.csv",
+        sep=",",
+        names=None,
+        dtype=str,
+        transformer=None,
+        loader=None
+    )
+    yield csv_handler
 
 @pytest.fixture
 def mock_data_frame():
