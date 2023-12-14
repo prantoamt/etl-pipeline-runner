@@ -165,6 +165,40 @@ def csv_handler():
     yield csv_handler
 
 @pytest.fixture
+def csv_data_extractor():
+    csv_handler = CSVHandler(
+        file_name="VYNT0.csv.gz",
+        sep=",",
+        names=None,
+        transformer=None,
+        loader=None
+    )
+    csv_extractor = DataExtractor(
+        data_name="test data",
+        url="https://bulk.meteostat.net/v2/daily/VYNT0.csv.gz",
+        type=DataExtractor.CSV,
+        file_handlers=(csv_handler,)
+        )
+    yield csv_extractor
+    
+@pytest.fixture
+def kaggle_archive_data_extractor():
+    kaggle_handler = CSVHandler(
+        file_name="student.csv",
+        sep=",",
+        names=None,
+        transformer=None,
+        loader=None
+    )
+    kaggle_extractor = DataExtractor(
+        data_name="test data",
+        url="https://www.kaggle.com/datasets/jacksondivakarr/student-classification-dataset",
+        type=DataExtractor.KAGGLE_ARCHIVE,
+        file_handlers=(kaggle_handler,)
+        )
+    yield kaggle_extractor
+
+@pytest.fixture
 def mock_data_frame():
     data_frame = pd.DataFrame(
         {
