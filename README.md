@@ -7,7 +7,9 @@ package is to:
 
 ```Extract data from a source --> Transform the data according to the necessity --> Load data to a Database```
 
-![](images/ETL-Pipeline.jpg?raw=true)
+Feel free to have a look at the video documentation below about how to use the package:
+
+[![Video](https://img.youtube.com/vi/TjBKyjIXavU/0.jpg)](https://www.youtube.com/watch?v=TjBKyjIXavU)
 
 
 ## Installation
